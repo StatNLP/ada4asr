@@ -1,3 +1,3 @@
-# Aligned Data Augmentation for ASR
+# Aligned Data Augmentation for Sequence-to-Sequence ASR
 
 To be updated soon...
