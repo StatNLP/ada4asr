@@ -1,1 +1,3 @@
-# ada4asr
+# Aligned Data Augmentation for ASR
+
+To be updated soon...
