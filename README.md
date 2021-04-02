@@ -1,3 +1,3 @@
-# On-the-Fly Aligned Data Augmentation for Sequence-to-Sequence ASR
+# On-the-Fly Aligned Data Augmentation for Seq-to-Seq ASR
 
 To be updated soon...
