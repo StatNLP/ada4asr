@@ -2,6 +2,7 @@
 #
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
+from typing import List
 
 import numpy as np
 import torch
@@ -10,6 +11,7 @@ import torch.nn.functional as F
 from fairseq import utils
 from fairseq.data import encoders
 
+from fairseq.data.data_utils import collate_tokens
 
 class RobertaHubInterface(nn.Module):
     """A simple PyTorch Hub interface to RoBERTa.
@@ -215,6 +217,79 @@ class RobertaHubInterface(nn.Module):
                     )
                 )
         return topk_filled_outputs
+
+
+    def batch_fill_mask(self, masked_inputs: List[str], topk: int = 5):
+        '''
+        Allow batch inference for predicting mask token on each input sentence.
+        '''
+        masked_token = "<mask>"
+
+        collect_tokens = []
+        for masked_input in masked_inputs:
+            text_spans = masked_input.split(masked_token)
+            text_spans_bpe = (
+                (" {0} ".format(masked_token))
+                .join([self.bpe.encode(text_span.rstrip()) for text_span in text_spans])
+                .strip()
+            )
+            tokens = self.task.source_dictionary.encode_line(
+                "<s> " + text_spans_bpe + " </s>",
+                append_eos=False,
+                add_if_not_exist=False,
+            )
+            collect_tokens.append(tokens)
+
+        # Pad the tokens in a 2D Tensor
+        tokens = collate_tokens(collect_tokens, pad_idx=1)
+        masked_index = (tokens == self.task.mask_idx).nonzero()
+
+        with utils.model_eval(self.model):
+            features, extra = self.model(
+                tokens.long().to(device=self.device),
+                features_only=False,
+                return_all_hiddens=False,
+            )
+
+        all_outputs = []
+        idx = 0
+        for mask_idx, masked_input in zip(masked_index[:,-1], masked_inputs):
+            logits = features[idx, mask_idx, :].squeeze()
+            prob = logits.softmax(dim=0)
+            values, index = prob.topk(k=topk, dim=0)
+
+            topk_predicted_token_bpe = self.task.source_dictionary.string(index)
+
+            topk_filled_outputs = []
+            for index, predicted_token_bpe in enumerate(
+                topk_predicted_token_bpe.split(" ")
+            ):
+                predicted_token = self.bpe.decode(predicted_token_bpe)
+                # Quick hack to fix https://github.com/pytorch/fairseq/issues/1306
+                if predicted_token_bpe.startswith("\u2581"):
+                    predicted_token = " " + predicted_token
+
+                if " {0}".format(masked_token) in masked_input:
+                    topk_filled_outputs.append(
+                        (
+                            masked_input.replace(
+                                " {0}".format(masked_token), predicted_token
+                            ),
+                            values[index].item(),
+                            predicted_token,
+                        )
+                    )
+                else:
+                    topk_filled_outputs.append(
+                        (
+                            masked_input.replace(masked_token, predicted_token),
+                            values[index].item(),
+                            predicted_token,
+                        )
+                    )
+            all_outputs.append(topk_filled_outputs)
+            idx += 1
+        return all_outputs
 
     def disambiguate_pronoun(self, sentence: str) -> bool:
         """

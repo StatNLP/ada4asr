@@ -13,6 +13,10 @@ from fairseq.data.audio.speech_to_text_dataset import (
     SpeechToTextDataset,
     SpeechToTextDatasetCreator,
 )
+from fairseq.data.audio.audio_dict_dataset import (
+    AudioDictDataset,
+    AudioDictDatasetCreator
+)
 from fairseq.tasks import LegacyFairseqTask, register_task
 
 
@@ -44,11 +48,33 @@ class SpeechToTextTask(LegacyFairseqTask):
             metavar="N",
             help="max number of tokens in the target sequence",
         )
+        parser.add_argument(
+            "--path-audio-dict",
+            default='',
+            type=str,
+            help="path for audio dict"
+        )
+        parser.add_argument(
+            "--use-AudioDictDataset",
+            action='store_true',
+            help='Use AudioDictDataset'
+        )
 
     def __init__(self, args, tgt_dict):
         super().__init__(args)
         self.tgt_dict = tgt_dict
         self.data_cfg = S2TDataConfig(op.join(args.data, args.config_yaml))
+
+        if args.path_audio_dict != '':
+            assert self.args.use_AudioDictDataset
+            from six.moves import cPickle as pickle
+            print('path_audio_dict:', args.path_audio_dict)
+            adict_path = op.join(args.path_audio_dict,'audio_dict.pkl')
+
+            with open(adict_path,'rb') as faudio:
+                self.audio_dict = pickle.load(faudio)
+        else:
+            self.audio_dict = None
 
     @classmethod
     def setup_task(cls, args, **kwargs):
@@ -80,17 +106,33 @@ class SpeechToTextTask(LegacyFairseqTask):
         is_train_split = split.startswith("train")
         pre_tokenizer = self.build_tokenizer(self.args)
         bpe_tokenizer = self.build_bpe(self.args)
-        self.datasets[split] = SpeechToTextDatasetCreator.from_tsv(
-            self.args.data,
-            self.data_cfg,
-            split,
-            self.tgt_dict,
-            pre_tokenizer,
-            bpe_tokenizer,
-            is_train_split=is_train_split,
-            epoch=epoch,
-            seed=self.args.seed,
-        )
+
+        #if is_train_split and self.args.path_audio_dict != '':
+        if is_train_split and self.args.use_AudioDictDataset:
+            self.datasets[split] = AudioDictDatasetCreator.from_tsv(
+                self.args.data,
+                self.data_cfg,
+                split,
+                self.tgt_dict,
+                pre_tokenizer,
+                bpe_tokenizer,
+                is_train_split=is_train_split,
+                epoch=epoch,
+                seed=self.args.seed,
+                audio_dict=self.audio_dict
+            )
+        else:
+            self.datasets[split] = SpeechToTextDatasetCreator.from_tsv(
+                self.args.data,
+                self.data_cfg,
+                split,
+                self.tgt_dict,
+                pre_tokenizer,
+                bpe_tokenizer,
+                is_train_split=is_train_split,
+                epoch=epoch,
+                seed=self.args.seed,
+            )
 
     @property
     def target_dictionary(self):

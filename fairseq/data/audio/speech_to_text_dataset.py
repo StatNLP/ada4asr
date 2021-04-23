@@ -105,6 +105,161 @@ class S2TDataConfig(object):
         the root path. Set this to empty string when using absolute paths."""
         return self.config.get("audio_root", "")
 
+    @property
+    def max_samp_fbank(self):
+        """Added for align sampling of fbanks"""
+        cfg_samp_fbank = self.config.get('samp_fbank', None)
+        if cfg_samp_fbank is not None:
+            return cfg_samp_fbank.get('max_samp_fbank', 5)
+
+    @property
+    def num_samp_fbank(self):
+        cfg_samp_fbank = self.config.get('samp_fbank', None)
+        if cfg_samp_fbank is not None:
+            return cfg_samp_fbank.get('num_samp_fbank', 5)
+
+    @property
+    def sampleFbank_prob(self):
+        cfg_samp_fbank = self.config.get('samp_fbank', None)
+        if cfg_samp_fbank is not None:
+            return cfg_samp_fbank.get("sampleFbank_prob", -1)
+        return -1
+
+    @property
+    def max_mask_fbank(self):
+        cfg_align_mask = self.config.get('align_fbank', None)
+        if cfg_align_mask is not None:
+            return cfg_align_mask.get("max_mask_fbank", None)
+
+    @property
+    def num_mask_fbank(self):
+        cfg_align_mask = self.config.get('align_fbank', None)
+        if cfg_align_mask is not None:
+            return cfg_align_mask.get("num_mask_fbank", None)
+
+    @property
+    def alignAugment_prob(self):
+        cfg_alignAugment = self.config.get('alignAugment', None)
+        if cfg_alignAugment is not None:
+            return cfg_alignAugment.get('alignAugment_prob', -1)
+        return -1
+
+    @property
+    def path_roberta(self):
+        cfg_alignAugment = self.config.get('alignAugment', None)
+        if cfg_alignAugment is not None:
+            return cfg_alignAugment.get(
+                'path_roberta', None
+            )
+        return None
+
+    @property
+    def alignMask(self):
+        cfg_alignAugment = self.config.get('alignAugment', None)
+        if cfg_alignAugment is not None:
+            return cfg_alignAugment.get('alignMask', False)
+        return False
+
+    @property
+    def skip_source(self):
+        cfg_alignAugment = self.config.get('alignAugment', None)
+        if cfg_alignAugment is not None:
+            return cfg_alignAugment.get('skip_source', False)
+        return False
+
+    @property
+    def percentMaskedTokens(self):
+        cfg_alignAugment = self.config.get('alignAugment', None)
+        if cfg_alignAugment is not None:
+            return cfg_alignAugment.get('percentMaskedTokens', None)
+        return None
+
+    @property
+    def thresholdMaskedTokens(self):
+        cfg_alignAugment = self.config.get('alignAugment', None)
+        if cfg_alignAugment is not None:
+            return cfg_alignAugment.get('thresholdMaskedTokens', None)
+        return None
+
+    @property
+    def apply_alignAugment(self):
+        cfg_alignAugment = self.config.get('alignAugment', None)
+        if cfg_alignAugment is not None:
+            return True
+        return False
+
+    @property
+    def skip_roberta(self):
+        cfg_alignAugment = self.config.get('alignAugment', None)
+        if cfg_alignAugment is not None:
+            return cfg_alignAugment.get('skip_roberta', None)
+        return None
+
+    @property
+    def roberta_fp16(self):
+        cfg_alignAugment = self.config.get('alignAugment', None)
+        if cfg_alignAugment is not None:
+            return cfg_alignAugment.get('roberta_fp16', None)
+        return None
+
+    @property
+    def random_time_mask_N(self):
+        cfg_alignAugment = self.config.get('alignAugment', None)
+        if cfg_alignAugment is not None:
+            return cfg_alignAugment.get('time_mask_N', None)
+        return None
+
+    @property
+    def random_time_mask_T(self):
+        cfg_alignAugment = self.config.get('specaugment', None)
+        if cfg_alignAugment is not None:
+            return cfg_alignAugment.get('time_mask_T', None)
+        return None
+
+    @property
+    def random_time_mask_p(self):
+        cfg_alignAugment = self.config.get('specaugment', None)
+        if cfg_alignAugment is not None:
+            return cfg_alignAugment.get('time_mask_p', None)
+        return None
+
+    @property
+    def random_time_mask_limited(self):
+        cfg_alignAugment = self.config.get('alignAugment', None)
+        if cfg_alignAugment is not None:
+            return cfg_alignAugment.get('time_mask_limited', None)
+        return None
+
+    @property
+    def random_freq_mask_N(self):
+        cfg_alignAugment = self.config.get('alignAugment', None)
+        if cfg_alignAugment is not None:
+            return cfg_alignAugment.get('freq_mask_N', None)
+        return None
+
+    @property
+    def random_freq_mask_F(self):
+        cfg_alignAugment = self.config.get('alignAugment', None)
+        if cfg_alignAugment is not None:
+            return cfg_alignAugment.get('freq_mask_F', None)
+        return None
+
+    @property
+    def random_mask_value(self):
+        # None: mean of the spectrogram
+        cfg_alignAugment = self.config.get('alignAugment', None)
+        if cfg_alignAugment is not None:
+            return cfg_alignAugment.get('random_mask_value', None)
+        return None
+
+    @property
+    def align_mask_value(self):
+        # None: "mean" of the spectrogram
+        cfg_alignAugment = self.config.get('alignAugment', None)
+        if cfg_alignAugment is not None:
+            return cfg_alignAugment.get('align_mask_value', None)
+        return None
+
     def get_feature_transforms(self, split, is_train):
         """Split-specific feature transforms. Allowing train set wildcard `_train`,
         evaluation set wildcard `_eval` and general wildcard `*` for matching."""

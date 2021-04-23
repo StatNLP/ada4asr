@@ -135,14 +135,15 @@ def _main(cfg: DictConfig, output_file):
     # (None if no unknown word replacement, empty if no path to align dictionary)
     align_dict = utils.load_align_dict(cfg.generation.replace_unk)
 
+        #max_positions=utils.resolve_max_positions(
+        #    task.max_positions(), *[m.max_positions() for m in models]
+        #),
     # Load dataset (possibly sharded)
     itr = task.get_batch_iterator(
         dataset=task.dataset(cfg.dataset.gen_subset),
         max_tokens=cfg.dataset.max_tokens,
         max_sentences=cfg.dataset.batch_size,
-        max_positions=utils.resolve_max_positions(
-            task.max_positions(), *[m.max_positions() for m in models]
-        ),
+        max_positions=(6000,1024),
         ignore_invalid_inputs=cfg.dataset.skip_invalid_size_inputs_valid_test,
         required_batch_size_multiple=cfg.dataset.required_batch_size_multiple,
         seed=cfg.common.seed,
@@ -167,8 +168,11 @@ def _main(cfg: DictConfig, output_file):
     )
 
     # Handle tokenization and BPE
-    tokenizer = encoders.build_tokenizer(cfg.tokenizer)
-    bpe = encoders.build_bpe(cfg.bpe)
+    #tokenizer = encoders.build_tokenizer(cfg.tokenizer)
+    #bpe = encoders.build_bpe(cfg.bpe)
+    tokenizer = task.build_tokenizer(cfg.tokenizer)
+    bpe = task.build_bpe(cfg.bpe)
+
 
     def decode_fn(x):
         if bpe is not None:
