@@ -78,6 +78,14 @@ class LabelSmoothedCrossEntropyCriterion(FairseqCriterion):
             "nsentences": sample["target"].size(0),
             "sample_size": sample_size,
         }
+
+        if 'nhit' in sample and 'ntokens_masked' in sample:
+            logging_output['nhit'] = sample['nhit'].data
+            logging_output['ntokens_masked'] = sample['ntokens_masked'].data
+        else:
+            logging_output['nhit'] = 0.
+            logging_output['ntokens_masked'] = 0.
+
         if self.report_accuracy:
             n_correct, total = self.compute_accuracy(model, net_output, sample)
             logging_output["n_correct"] = utils.item(n_correct.data)
@@ -123,6 +131,23 @@ class LabelSmoothedCrossEntropyCriterion(FairseqCriterion):
         nll_loss_sum = sum(log.get("nll_loss", 0) for log in logging_outputs)
         ntokens = sum(log.get("ntokens", 0) for log in logging_outputs)
         sample_size = sum(log.get("sample_size", 0) for log in logging_outputs)
+
+        if 'nhit' in logging_outputs[0] and \
+            'ntokens_masked' in logging_outputs[0]:
+            nhit = sum(log['nhit'] for log in logging_outputs)
+            ntokens_masked = sum(
+                log['ntokens_masked'] for log in logging_outputs
+            )
+            assert nhit <= ntokens_masked
+            if ntokens_masked > 0:
+                hit_rate = nhit / ntokens_masked
+            else:
+                hit_rate = -1
+
+            #TODO: check how to fill the 3 arguments below
+            metrics.log_scalar("nhit", nhit, round=3, weight=0)
+            metrics.log_scalar("ntokens_masked", ntokens_masked, round=3, weight=0)
+            metrics.log_scalar("hit_rate", hit_rate, round=3, weight=0)
 
         metrics.log_scalar(
             "loss", loss_sum / sample_size / math.log(2), sample_size, round=3
