@@ -651,9 +651,11 @@ class TransformerDecoder(FairseqIncrementalDecoder):
             self.output_projection = nn.Linear(
                 self.output_embed_dim, len(dictionary), bias=False
             )
-            nn.init.normal_(
-                self.output_projection.weight, mean=0, std=self.output_embed_dim ** -0.5
-            )
+            #: change it from normal to Xavier to match speech joey
+            #nn.init.normal_(
+            #    self.output_projection.weight, mean=0, std=self.output_embed_dim ** -0.5
+            #)
+            nn.init.xavier_uniform_(self.output_projection.weight)
 
     def build_decoder_layer(self, args, no_encoder_attn=False):
         layer = TransformerDecoderLayer(args, no_encoder_attn)
@@ -915,7 +917,9 @@ class TransformerDecoder(FairseqIncrementalDecoder):
 
 def Embedding(num_embeddings, embedding_dim, padding_idx):
     m = nn.Embedding(num_embeddings, embedding_dim, padding_idx=padding_idx)
-    nn.init.normal_(m.weight, mean=0, std=embedding_dim ** -0.5)
+    #: change it from normal to Xavier
+    #nn.init.normal_(m.weight, mean=0, std=embedding_dim ** -0.5)
+    nn.init.xavier_uniform_(m.weight)
     nn.init.constant_(m.weight[padding_idx], 0)
     return m
 
