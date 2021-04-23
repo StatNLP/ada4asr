@@ -5,6 +5,7 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import ast
 import logging
 import os
 import sys
@@ -13,6 +14,7 @@ from itertools import chain
 
 import torch
 from fairseq import checkpoint_utils, distributed_utils, options, utils
+from fairseq import tasks
 from fairseq.dataclass.utils import convert_namespace_to_omegaconf
 from fairseq.logging import metrics, progress_bar
 from omegaconf import DictConfig
@@ -33,9 +35,11 @@ def main(cfg: DictConfig, override_args=None):
 
     utils.import_user_module(cfg.common)
 
-    assert (
-        cfg.dataset.max_tokens is not None or cfg.dataset.batch_size is not None
-    ), "Must specify batch size either with --max-tokens or --batch-size"
+    #assert (
+    #    cfg.dataset.max_tokens is not None or cfg.dataset.batch_size is not None
+    #), "Must specify batch size either with --max-tokens or --batch-size"
+    if cfg.dataset.max_tokens is None and cfg.dataset.batch_size is None:
+        cfg.dataset.max_tokens = 12000
 
     use_fp16 = cfg.common.fp16
     use_cuda = torch.cuda.is_available() and not cfg.common.cpu
@@ -43,18 +47,30 @@ def main(cfg: DictConfig, override_args=None):
     if use_cuda:
         torch.cuda.set_device(cfg.distributed_training.device_id)
 
-    if override_args is not None:
-        overrides = vars(override_args)
-        overrides.update(eval(getattr(override_args, "model_overrides", "{}")))
-    else:
-        overrides = None
+    task = tasks.setup_task(cfg.task)
+    task.load_dataset(cfg.dataset.gen_subset)
+
+    #if override_args is not None:
+    #    overrides = vars(override_args)
+    #    overrides.update(eval(getattr(override_args, "model_overrides", "{}")))
+    #else:
+    #    overrides = None
+    overrides = ast.literal_eval(cfg.common_eval.model_overrides)
 
     # Load ensemble
     logger.info("loading model(s) from {}".format(cfg.common_eval.path))
-    models, model_args, task = checkpoint_utils.load_model_ensemble_and_task(
-        [cfg.common_eval.path],
+    #models, model_args, task = checkpoint_utils.load_model_ensemble_and_task(
+    #    [cfg.common_eval.path],
+    #    arg_overrides=overrides,
+    #    suffix=cfg.checkpoint.checkpoint_suffix,
+    #)
+    models, model_args = checkpoint_utils.load_model_ensemble(
+        utils.split_paths(cfg.common_eval.path),
         arg_overrides=overrides,
+        task=task,
         suffix=cfg.checkpoint.checkpoint_suffix,
+        strict=(cfg.checkpoint.checkpoint_shard_count == 1),
+        num_shards=cfg.checkpoint.checkpoint_shard_count
     )
     model = models[0]
 
