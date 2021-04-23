@@ -71,11 +71,11 @@ class SpecAugmentTransform(AudioFeatureTransform):
                     f"time_mask_n={self.time_mask_n}",
                     f"time_mask_t={self.time_mask_t}",
                     f"time_mask_p={self.time_mask_p}",
+                    f"mask_value={self.mask_value}",
                 ]
             )
             + ")"
         )
-
     def __call__(self, spectrogram):
         assert len(spectrogram.shape) == 2, "spectrogram must be a 2-D tensor."
 
