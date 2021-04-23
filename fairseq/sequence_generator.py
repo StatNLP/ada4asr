@@ -831,6 +831,9 @@ class EnsembleModel(nn.Module):
             if decoder_len > 1 and decoder_out[1] is not None:
                 if isinstance(decoder_out[1], Tensor):
                     attn = decoder_out[1]
+                elif 'ctc_output' in decoder_out[1].keys():
+                    # Quick hack for model with multi-task training using CTC
+                    pass
                 else:
                     attn_holder = decoder_out[1]["attn"]
                     if isinstance(attn_holder, Tensor):
