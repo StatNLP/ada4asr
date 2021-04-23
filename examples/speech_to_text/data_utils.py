@@ -104,6 +104,19 @@ def create_zip(data_root, zip_path):
             f.write(filename)
     os.chdir(cwd)
 
+def create_zip_list(data_root_list, zip_path):
+    '''
+    A more flexible version of def create_zip() in which the fbanks can 
+     be stored in different directories instead of 1
+    '''
+
+    cwd = os.path.abspath(os.curdir)
+    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_STORED) as f:
+        for data_root in data_root_list:
+            os.chdir(data_root)
+            for filename in tqdm(glob("*.npy")):
+                f.write(filename)
+    os.chdir(cwd)
 
 def is_npy_data(data: bytes) -> bool:
     return data[0] == 147 and data[1] == 78
