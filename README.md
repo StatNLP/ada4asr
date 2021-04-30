@@ -19,3 +19,7 @@ Implementation of our paper: On-the-Fly Aligned Data Augmentation for Sequence-t
 - fairseq/data/audio/feature_transforms/specaugment.py 
 - fairseq/tasks/speech_to_text.py
 - fairseq/sequence_generator.py
+
+#### sample data input (.tsv)
+
+#### script for audio dictionary
