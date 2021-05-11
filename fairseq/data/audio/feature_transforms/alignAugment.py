@@ -31,9 +31,7 @@ class alignAugmentTransform(AudioFeatureTransform):
             _config.get("random_mask_value", None),
             _config.get("align_mask_value", 0.),
             _config.get("path_roberta", None),
-            _config.get("path_leastFreqDict", None),
             _config.get("skip_roberta", False),
-            _config.get("leastFreq_keep_prob", -1)
         )
 
     def __init__(self, 
@@ -52,9 +50,7 @@ class alignAugmentTransform(AudioFeatureTransform):
                  random_mask_value,
                  align_mask_value,
                  path_roberta,
-                 path_leastFreqDict,
                  skip_roberta,
-                 leastFreq_keep_prob
         ):
 
         self.alignAugment_prob = alignAugment_prob
@@ -73,9 +69,7 @@ class alignAugmentTransform(AudioFeatureTransform):
         self.align_mask_value = align_mask_value
         self.random_mask_value = random_mask_value
         self.path_roberta = path_roberta
-        self.path_leastFreqDict = path_leastFreqDict
         self.skip_roberta = skip_roberta
-        self.leastFreq_keep_prob = leastFreq_keep_prob
         
 
     def __repr__(self):
@@ -99,9 +93,7 @@ class alignAugmentTransform(AudioFeatureTransform):
                     f"align_mask_value={self.align_mask_value}",
                     f"random_mask_value={self.random_mask_value}",
                     f"path_roberta={self.path_roberta}",
-                    f"path_leastFreqDict={self.path_leastFreqDict}",
                     f"skip_roberta={self.skip_roberta}",
-                    f"leastFreq_keep_prob={self.leastFreq_keep_prob}"
                 ]
             )
             + ")"
