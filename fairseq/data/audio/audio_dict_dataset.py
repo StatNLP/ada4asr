@@ -466,8 +466,7 @@ class AudioDictDataset(SpeechToTextDataset):
 
         if not collect_fbank_min_pos and not collect_fbank_max_pos:
             # No augmented words exist in AD or no augmented target words
-            assert (hit_audioDict == 0) and (frames_masked == 0) and \
-                (hit_audioDict == 0)
+            assert hit_audioDict == 0
             return source, aug_tp, frames_masked, len(aug_info), hit_audioDict
 
         # Update the fbank
